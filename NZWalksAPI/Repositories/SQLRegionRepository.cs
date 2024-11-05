@@ -33,8 +33,18 @@ namespace NZWalksAPI.Repositories
             // throw new NotImplementedException();
         }
 
-        public async Task<List<Region>> GetAllRegionsAsync()
+        public async Task<List<Region>> GetAllRegionsAsync(string? Filteron =null  , string FilterQuery= null)
         {
+            var region = applicationDbContext.regions.AsQueryable();
+            // Filtering
+            if(string.IsNullOrWhiteSpace(Filteron) && string.IsNullOrWhiteSpace(FilterQuery) == false)
+            {
+                if(Filteron.Equals("Name", StringComparison.OrdinalIgnoreCase)){
+
+                    region = region.Where(x => x.Name.Contains(FilterQuery));
+                }
+            }
+           
             return await applicationDbContext.regions.ToListAsync();
             //throw new NotImplementedException();
         }

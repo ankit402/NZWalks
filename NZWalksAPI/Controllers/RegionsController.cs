@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NZWalksAPI.CustomActionFilter;
 using NZWalksAPI.Data;
 using NZWalksAPI.DTO;
 using NZWalksAPI.Models.Domain;
@@ -28,12 +29,13 @@ namespace NZWalksAPI.Controllers
         }
         /// <summary>
         /// GetAllRegions : Get All data by  calling this method
+        /// API/Region?Filteron=Name&FilterQuery=Track
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllRegions()
+        public async Task<IActionResult> GetAllRegions([FromQuery] string? Filteron , [FromQuery] string? FilterQuery)
         {
-            var dbGetAllRegion = await regionRepository.GetAllRegionsAsync();
+            var dbGetAllRegion = await regionRepository.GetAllRegionsAsync(Filteron, FilterQuery);
             //await applicationDbContext.regions.ToListAsync();         
             //var regionDTO = new List<RegionsDTO>();
             //foreach (var region in dbGetAllRegion)
@@ -66,7 +68,7 @@ namespace NZWalksAPI.Controllers
                 return NotFound();
             }
             //return Ok(dbGetRegionbyId); ;
-            return Ok(mapper.Map<RegionsDTO>(dbGetRegionbyfirstDefault);
+            return Ok(mapper.Map<RegionsDTO>(dbGetRegionbyfirstDefault));
         }
         /// <summary>
         /// AddRegion : Add Region data which is  coming from the Request Body
@@ -74,6 +76,7 @@ namespace NZWalksAPI.Controllers
         /// <param name="addRegionRequestDTO"></param>
         /// <returns></returns>
         [HttpPost("AddRegions")]
+        [ValidateActionFilter]
         public async Task<IActionResult> AddRegion([FromBody] AddRegionRequestDTO addRegionRequestDTO)
         {
             // Map or convert the RegiondDTO into  Domain Model
@@ -137,6 +140,7 @@ namespace NZWalksAPI.Controllers
         }
         [HttpDelete]
         [Route("{id:guid}")]
+        [ValidateActionFilter]
         public async Task<IActionResult> DeleteRegion([FromRoute] Guid id)
         {
            var regiondata= await regionRepository.DeleteRegionAsync(id);
