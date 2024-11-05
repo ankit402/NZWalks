@@ -32,19 +32,32 @@ namespace NZWalksAPI.Repositories
             return existingRegion;
             // throw new NotImplementedException();
         }
-
-        public async Task<List<Region>> GetAllRegionsAsync(string? Filteron =null  , string FilterQuery= null)
+        //Filter & Sorting
+        public async Task<List<Region>> GetAllRegionsAsync(string? Filteron =null  , string FilterQuery= null, string? SortBy= null, bool IsAscending = true)
         {
             var region = applicationDbContext.regions.AsQueryable();
             // Filtering
-            if(string.IsNullOrWhiteSpace(Filteron) && string.IsNullOrWhiteSpace(FilterQuery) == false)
+            if(string.IsNullOrWhiteSpace(Filteron) == false && string.IsNullOrWhiteSpace(FilterQuery) == false)
             {
                 if(Filteron.Equals("Name", StringComparison.OrdinalIgnoreCase)){
 
                     region = region.Where(x => x.Name.Contains(FilterQuery));
+                    return await region.ToListAsync();
                 }
             }
-           
+
+            //Sorting 
+            if (string.IsNullOrWhiteSpace(SortBy) == false)
+            {
+                if (Filteron.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+
+                    region = IsAscending ? region.OrderBy(x=> x.Name) : region.OrderByDescending(x=> x.Name);
+                    return await region.ToListAsync();
+                }
+            }
+
+
             return await applicationDbContext.regions.ToListAsync();
             //throw new NotImplementedException();
         }

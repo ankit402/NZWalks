@@ -33,9 +33,9 @@ namespace NZWalksAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllRegions([FromQuery] string? Filteron , [FromQuery] string? FilterQuery)
+        public async Task<IActionResult> GetAllRegions([FromQuery] string? Filteron , [FromQuery] string? FilterQuery, string Sortby , bool IsAscending =true)
         {
-            var dbGetAllRegion = await regionRepository.GetAllRegionsAsync(Filteron, FilterQuery);
+            var dbGetAllRegion = await regionRepository.GetAllRegionsAsync(Filteron, FilterQuery,  Sortby, IsAscending);
             //await applicationDbContext.regions.ToListAsync();         
             //var regionDTO = new List<RegionsDTO>();
             //foreach (var region in dbGetAllRegion)
