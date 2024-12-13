@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NZWalksAPI.DTO;
+using NZWalksAPI.Repositories;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace NZWalksAPI.Controllers
 {
@@ -11,9 +13,12 @@ namespace NZWalksAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
-        public AuthController(UserManager<IdentityUser> userManager)
+        private readonly ITokenRepository tokenRepository;
+
+        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository)
         {
             _userManager = userManager;
+            this.tokenRepository = tokenRepository;
         }
         /*User Registeration Part Added till this commit */
         //POST : /api/Auth/Register
@@ -21,16 +26,17 @@ namespace NZWalksAPI.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerRequestDto)
         {
+            string splterror = string.Empty;
             var identityUser = new IdentityUser
             {
                 UserName = registerRequestDto.Username,
                 PasswordHash = registerRequestDto.Password
             };
             var identityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
-            if(identityResult.Succeeded)
+            if (identityResult.Succeeded)
             {
                 //Add Role for user
-                if(registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
+                if (registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
                 {
                     identityResult = await _userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
                     if (identityResult.Succeeded)
@@ -39,7 +45,12 @@ namespace NZWalksAPI.Controllers
                     }
                 }
             }
-            return BadRequest("Something went wrong");
+            foreach (var item in identityResult.Errors)
+            {
+                splterror  = item.Code + " :  " +  item.Description;
+            }
+            
+            return BadRequest($"Error {splterror}");
         }
 
         [HttpPost]
@@ -52,11 +63,19 @@ namespace NZWalksAPI.Controllers
                 var verifypassword = await _userManager.CheckPasswordAsync(validUser, _loginuser.Password);
                 if (verifypassword)
                 {
-                    // Create Token Here only /////////
-
-
-
-                    return Ok();
+                    // get roles 
+                    var roles = await _userManager.GetRolesAsync(validUser);
+                    if ((roles != null))
+                    {
+                        // create a token
+                        var jwttoken = this.tokenRepository.CreateToken(validUser, roles.ToList());
+                        var response = new LoginReponseDto
+                        {
+                            JwtToken = jwttoken
+                        };
+                        return Ok(jwttoken);
+                    }
+                    
                 }
             }
             return BadRequest("Username or Password incorrect");
