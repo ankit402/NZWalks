@@ -1,0 +1,1 @@
+﻿Add-Migration Your_Migration_Name -Context StructureWebDbContext
